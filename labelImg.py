@@ -237,6 +237,9 @@ class MainWindow(QMainWindow, WindowMixin):
         save = action(get_str('save'), self.save_file,
                       'Ctrl+S', 'save', get_str('saveDetail'), enabled=False)
 
+        clear_boxes = action(get_str('clrBox'), self.clear_boxes,
+                      'x', 'clear_boxes', get_str('clrBoxDetail'), enabled=False)
+
         def get_format_meta(format):
             """
             returns a tuple containing (title, icon_name) of the selected format
@@ -357,6 +360,7 @@ class MainWindow(QMainWindow, WindowMixin):
         # Store actions for further handling.
         self.actions = Struct(save=save, save_format=save_format, saveAs=save_as, open=open, close=close, resetAll=reset_all, deleteImg=delete_image,
                               lineColor=color1, create=create, delete=delete, edit=edit, copy=copy,
+                              clear_boxes=clear_boxes,
                               createMode=create_mode, editMode=edit_mode, advancedMode=advanced_mode,
                               shapeLineColor=shape_line_color, shapeFillColor=shape_fill_color,
                               zoom=zoom, zoomIn=zoom_in, zoomOut=zoom_out, zoomOrg=zoom_org,
@@ -421,7 +425,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, open_dir, change_save_dir, open_next_image, open_prev_image, verify, save, save_format, None, create, copy, delete, None,
+            open, open_dir, change_save_dir, open_next_image, open_prev_image, verify, save, save_format, None, create, copy, delete, clear_boxes, None,
             zoom_in, zoom, zoom_out, fit_window, fit_width)
 
         self.actions.advanced = (
@@ -589,11 +593,13 @@ class MainWindow(QMainWindow, WindowMixin):
     def set_dirty(self):
         self.dirty = True
         self.actions.save.setEnabled(True)
+        self.actions.clear_boxes.setEnabled(True)
 
     def set_clean(self):
         self.dirty = False
         self.actions.save.setEnabled(False)
         self.actions.create.setEnabled(True)
+        self.actions.clear_boxes.setEnabled(True)
 
     def toggle_actions(self, value=True):
         """Enable/Disable widgets which depend on an opened image."""
@@ -607,6 +613,16 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def status(self, message, delay=5000):
         self.statusBar().showMessage(message, delay)
+
+    def clear_boxes(self):
+        self.label_list.clear()
+        self.shapes_to_items.clear()
+        self.items_to_shapes.clear()
+        self.canvas.clear_shapes()
+        self.update_combo_box()
+        self.set_dirty()
+        for action in self.actions.onShapesPresent:
+            action.setEnabled(False)
 
     def reset_state(self):
         self.items_to_shapes.clear()
@@ -1287,7 +1303,9 @@ class MainWindow(QMainWindow, WindowMixin):
         else:
             target_dir_path = ustr(default_open_dir_path)
         self.last_open_dir = target_dir_path
+        self.default_save_dir = target_dir_path
         self.import_dir_images(target_dir_path)
+
 
     def import_dir_images(self, dir_path):
         if not self.may_continue() or not dir_path:
