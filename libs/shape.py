@@ -196,6 +196,12 @@ class Shape(object):
         shape.difficult = self.difficult
         return shape
 
+    def get_list_item_text(self):
+        # Points are arragned clockwise, top left first
+        top_left, _, bottom_right, _ = self.points
+        width = int(bottom_right.x() - top_left.x())
+        height = int(bottom_right.y() - top_left.y())
+        return f'{self.label} ({width}x{height})'
     def __len__(self):
         return len(self.points)
 

@@ -739,7 +739,7 @@ class MainWindow(QMainWindow, WindowMixin):
         item = self.current_item()
         if not item:
             return
-        text = self.label_dialog.pop_up(item.text())
+        text = self.label_dialog.pop_up(self.items_to_shapes[item].label)
         if text is not None:
             item.setText(text)
             item.setBackground(generate_color_by_text(text))
@@ -798,7 +798,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def add_label(self, shape):
         shape.paint_label = self.display_label_option.isChecked()
-        item = HashableQListWidgetItem(shape.label)
+        item = HashableQListWidgetItem(shape.get_list_item_text())
         item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
         item.setCheckState(Qt.Checked)
         item.setBackground(generate_color_by_text(shape.label))
@@ -851,7 +851,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def update_combo_box(self):
         # Get the unique labels and add them to the Combobox.
-        items_text_list = [str(self.label_list.item(i).text()) for i in range(self.label_list.count())]
+        items_text_list = [str(self.items_to_shapes[self.label_list.item(i)].label) for i in range(self.label_list.count())]
 
         unique_text_list = list(set(items_text_list))
         # Add a null row for showing all the labels
